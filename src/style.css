@@ -1,0 +1,663 @@
+/* ========== Base Reset ========== */
+html, body, #cesiumContainer {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ========== Control Panel (left sidebar) ========== */
+#controlPanel {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 320px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  background: rgba(15, 15, 25, 0.92);
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  padding: 16px;
+  color: #e0e0e0;
+  z-index: 100;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+#controlPanel::-webkit-scrollbar {
+  width: 4px;
+}
+
+#controlPanel::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+#controlPanel h2 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+#controlPanel h3 {
+  margin: 16px 0 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+#controlPanel h4 {
+  margin: 12px 0 6px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #aaa;
+}
+
+/* ========== Temperature Buttons ========== */
+#tempButtons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.temp-btn {
+  padding: 8px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e0e0e0;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.temp-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+.temp-btn.active {
+  background: hsl(var(--btn-hue, 200), 70%, 35%);
+  border-color: hsl(var(--btn-hue, 200), 70%, 50%);
+  color: #fff;
+  box-shadow: 0 2px 12px hsla(var(--btn-hue, 200), 70%, 40%, 0.3);
+}
+
+.temp-btn.reset-btn {
+  --btn-hue: 200;
+}
+
+.temp-btn.reset-btn.active {
+  background: rgba(52, 152, 219, 0.3);
+  border-color: rgba(52, 152, 219, 0.5);
+}
+
+/* ========== Fine Temperature Control (+/- buttons) ========== */
+.fine-temp-control {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-top: 8px;
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.temp-adj-btn {
+  padding: 8px 16px;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: #e0e0e0;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.temp-adj-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+.temp-adj-btn:active {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.temp-display {
+  flex: 1;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #f1c40f;
+  padding: 8px 0;
+  user-select: none;
+}
+
+/* ========== Simulation Status ========== */
+#simulationStatus {
+  min-height: 20px;
+  margin: 8px 0;
+}
+
+.running {
+  color: #f1c40f;
+  font-size: 12px;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.done {
+  color: #2ecc71;
+  font-size: 12px;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ========== Stats Panel ========== */
+#statsPanel {
+  font-size: 13px;
+}
+
+#statsPanel p {
+  margin: 4px 0;
+  color: #aaa;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.stat {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.stat-label {
+  display: block;
+  font-size: 10px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 2px;
+}
+
+.stat-value {
+  display: block;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.impact-text {
+  background: rgba(231, 76, 60, 0.15);
+  border-left: 3px solid #e74c3c;
+  padding: 8px 10px;
+  border-radius: 0 6px 6px 0;
+  font-size: 12px;
+  margin: 10px 0;
+  color: #f5a0a0;
+}
+
+/* ========== Contributors ========== */
+.contributors {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.contributor {
+  position: relative;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.contributor-name {
+  font-size: 11px;
+  color: #bbb;
+  display: block;
+}
+
+.contributor-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: #e0e0e0;
+}
+
+.contributor-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #3498db, #e74c3c);
+  border-radius: 0 2px 0 0;
+  transition: width 0.5s ease;
+}
+
+/* ========== Location Impact ========== */
+.location-impact {
+  margin-top: 12px;
+  padding: 10px;
+  background: rgba(52, 152, 219, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(52, 152, 219, 0.2);
+}
+
+.location-impact h4 {
+  margin: 0 0 6px 0;
+  color: #3498db;
+}
+
+.location-impact p {
+  margin: 3px 0;
+  font-size: 12px;
+}
+
+.location-impact strong {
+  color: #e74c3c;
+  font-size: 14px;
+}
+
+/* ========== Histogram ========== */
+#histogramContainer {
+  display: none;
+  height: 180px;
+  margin: 12px 0;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+/* ========== Comparison ========== */
+#comparisonPanel {
+  margin-top: 4px;
+}
+
+#compareBtn {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #e0e0e0;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#compareBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+#compareBtn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+#compareBtn.active {
+  background: rgba(230, 126, 34, 0.3);
+  border-color: rgba(230, 126, 34, 0.5);
+}
+
+.comparison-info {
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.comparison-info p {
+  margin: 3px 0;
+}
+
+.delta {
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 4px !important;
+}
+
+.delta.increase {
+  color: #e74c3c;
+}
+
+.delta.decrease {
+  color: #2ecc71;
+}
+
+/* ========== Locations Panel (right side) ========== */
+#locationsPanel {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 180px;
+  background: rgba(15, 15, 25, 0.92);
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  padding: 12px;
+  color: #e0e0e0;
+  z-index: 100;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+#locationsPanel h3 {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+#locationButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.location-btn {
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #ccc;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.location-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.location-btn.active {
+  background: rgba(52, 152, 219, 0.25);
+  border-color: rgba(52, 152, 219, 0.4);
+  color: #fff;
+}
+
+/* ========== Info Overlay (bottom center) ========== */
+#infoOverlay {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 15, 25, 0.88);
+  backdrop-filter: blur(12px);
+  border-radius: 10px;
+  padding: 10px 24px;
+  color: #fff;
+  z-index: 100;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+#currentTemp {
+  color: #f1c40f;
+}
+
+#currentSLR {
+  color: #3498db;
+}
+
+/* ========== Onboarding Overlay ========== */
+#onboardingOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+#onboardingOverlay.visible {
+  opacity: 1;
+}
+
+.onboarding-card {
+  width: 520px;
+  max-width: 92vw;
+  max-height: 88vh;
+  background: rgba(18, 18, 32, 0.97);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.onboarding-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px 32px 16px;
+  color: #d0d0d0;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.onboarding-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.onboarding-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+}
+
+.slide-icon {
+  font-size: 36px;
+  margin-bottom: 8px;
+}
+
+.slide-title {
+  margin: 0 0 16px 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.slide-body p {
+  margin: 0 0 12px 0;
+}
+
+.slide-body ul {
+  margin: 0 0 14px 0;
+  padding-left: 20px;
+}
+
+.slide-body li {
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.slide-highlight {
+  background: rgba(52, 152, 219, 0.12);
+  border-left: 3px solid #3498db;
+  padding: 10px 12px;
+  border-radius: 0 8px 8px 0;
+  color: #8ec8f0;
+  font-size: 13px;
+}
+
+.slide-caption {
+  font-size: 11px;
+  color: #777;
+  text-align: center;
+  margin-top: 6px;
+}
+
+#onboardingChart {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  margin: 8px auto 0;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.slide-features {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.slide-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.feature-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.slide-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 20px 0 8px;
+}
+
+.slide-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #ccc;
+}
+
+.step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(52, 152, 219, 0.25);
+  border: 1px solid rgba(52, 152, 219, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #3498db;
+  flex-shrink: 0;
+}
+
+.onboarding-footer {
+  padding: 16px 32px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.onboarding-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.onboarding-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.onboarding-dot.active {
+  background: #3498db;
+  transform: scale(1.3);
+}
+
+.onboarding-dot:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.onboarding-nav {
+  display: flex;
+  gap: 10px;
+}
+
+.onboarding-btn {
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #ccc;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.onboarding-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.onboarding-btn.primary {
+  background: rgba(52, 152, 219, 0.35);
+  border-color: rgba(52, 152, 219, 0.5);
+  color: #fff;
+}
+
+.onboarding-btn.primary:hover {
+  background: rgba(52, 152, 219, 0.5);
+}
+
+/* ========== Cesium Overrides ========== */
+.cesium-viewer-bottom {
+  display: none !important;
+}
+
+.cesium-viewer-toolbar {
+  right: 200px !important;
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 768px) {
+  #controlPanel {
+    width: 260px;
+    padding: 12px;
+    font-size: 12px;
+  }
+
+  #locationsPanel {
+    width: 150px;
+  }
+
+  .stat-value {
+    font-size: 15px;
+  }
+
+  #histogramContainer {
+    height: 140px;
+  }
+}

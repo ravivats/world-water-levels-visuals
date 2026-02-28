@@ -1,0 +1,19 @@
+{
+  "name": "world-water-level-viz",
+  "version": "1.0.0",
+  "description": "3D globe visualization of sea level rise with Monte Carlo simulation",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "cesium": "^1.125.0",
+    "chart.js": "^4.4.0"
+  },
+  "devDependencies": {
+    "vite": "^6.1.0",
+    "vite-plugin-static-copy": "^2.2.0"
+  }
+}

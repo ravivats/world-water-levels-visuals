@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>World Water Level — Sea Level Rise Simulator</title>
+</head>
+<body>
+  <div id="cesiumContainer"></div>
+
+  <!-- Control Panel -->
+  <div id="controlPanel">
+    <h2>🌡️ Temperature Increase</h2>
+    <div id="tempButtons"></div>
+
+    <div id="simulationStatus"></div>
+
+    <h3>📊 Results</h3>
+    <div id="statsPanel">
+      <p>Select a temperature to run simulation</p>
+    </div>
+
+    <div id="histogramContainer">
+      <canvas id="histogramCanvas"></canvas>
+    </div>
+
+    <h3>🔄 Comparison</h3>
+    <div id="comparisonPanel">
+      <button id="compareBtn" disabled>Compare with Previous</button>
+      <div id="comparisonStats"></div>
+    </div>
+  </div>
+
+  <!-- Locations Panel -->
+  <div id="locationsPanel">
+    <h3>📍 Fly to Location</h3>
+    <div id="locationButtons"></div>
+  </div>
+
+  <!-- Info Overlay (bottom) -->
+  <div id="infoOverlay">
+    <span id="currentTemp">Baseline (Current)</span>
+    <span id="currentSLR"></span>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
