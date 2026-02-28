@@ -20,7 +20,7 @@ let histogramChart = null;
 let currentActiveTemp = 0;
 let currentLocationId = null;
 let currentSimulationResult = null;
-let currentFloodMetric = "median";
+let currentFloodMetric = "p95";
 
 const TEMP_LEVELS = [1, 2, 3, 5, 8, 10];
 const TEMP_STEP = 0.05;
@@ -400,8 +400,8 @@ function createFloodMetricToggle(viewer) {
   wrapper.innerHTML = `
     <span class="flood-metric-label">Flood Display Level</span>
     <div class="flood-metric-buttons">
-      <button class="flood-metric-btn active" data-metric="median">${FLOOD_METRICS.median.label}</button>
-      <button class="flood-metric-btn" data-metric="p95">${FLOOD_METRICS.p95.label}</button>
+      <button class="flood-metric-btn" data-metric="median">${FLOOD_METRICS.median.label}</button>
+      <button class="flood-metric-btn active" data-metric="p95">${FLOOD_METRICS.p95.label}</button>
     </div>
   `;
 
