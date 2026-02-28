@@ -1,5 +1,5 @@
 /**
- * UI Controls: temperature buttons, stats panel, histogram, location fly-to, comparison.
+ * UI Controls: temperature buttons, stats panel, histogram, go to location, comparison.
  */
 import { Chart, registerables } from "chart.js";
 import { Cartesian3, Math as CesiumMath } from "cesium";
@@ -451,7 +451,7 @@ function buildSeedForTemp(tempIncrease) {
 }
 
 /**
- * Create location fly-to buttons.
+ * Create go to location buttons.
  */
 function createLocationButtons(viewer) {
   const container = document.getElementById("locationButtons");

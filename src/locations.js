@@ -1,5 +1,5 @@
 /**
- * Predefined coastal locations for fly-to navigation.
+ * Predefined coastal locations for go-to navigation.
  * Each location has camera parameters and contextual information.
  */
 

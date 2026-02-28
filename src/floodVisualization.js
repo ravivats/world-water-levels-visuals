@@ -60,12 +60,20 @@ const FLOOD_SHADER_GEOID = `
     float encoded = geoidSample.r * (255.0 * 256.0 / 65535.0) + geoidSample.g * (255.0 / 65535.0);
     float geoidUndulation = encoded * geoidRange + geoidMin;
 
-    // Current flood: land terrain below (geoid + SLR) is underwater
+    // Current flood: land terrain below (geoid + SLR) is underwater.
+    // Use a small transition width to avoid harsh contour artifacts from
+    // terrain LOD quantization near the flood boundary.
     float floodSurface = geoidUndulation + seaLevelRise;
-    if (seaLevelRise > 0.0 && h < floodSurface) {
+    float edgeSoftness = 0.35;
+    float floodMask = 0.0;
+    if (seaLevelRise > 0.0) {
+      floodMask = 1.0 - smoothstep(floodSurface - edgeSoftness, floodSurface + edgeSoftness, h);
+    }
+
+    if (floodMask > 0.001) {
       // Amber/orange color — visible against the blue ocean
       material.diffuse = vec3(1.0, 0.65, 0.0);
-      material.alpha = waterAlpha;
+      material.alpha = waterAlpha * floodMask;
     }
 
     // Comparison overlay: highlight delta between current and previous SLR
@@ -98,9 +106,15 @@ const FLOOD_SHADER_FALLBACK = `
 
     float h = materialInput.height;
 
-    if (floodLevel != 0.0 && h < floodLevel) {
+    float edgeSoftness = 0.35;
+    float floodMask = 0.0;
+    if (floodLevel > 0.0) {
+      floodMask = 1.0 - smoothstep(floodLevel - edgeSoftness, floodLevel + edgeSoftness, h);
+    }
+
+    if (floodMask > 0.001) {
       material.diffuse = vec3(1.0, 0.65, 0.0);
-      material.alpha = waterAlpha;
+      material.alpha = waterAlpha * floodMask;
     }
 
     if (comparisonLevel != 0.0) {
@@ -239,16 +253,21 @@ export function clearFlood(viewer) {
   previousSnapshot = currentSnapshot ? { ...currentSnapshot } : null;
   currentSnapshot = null;
 
-  targetAlpha = 0;
-  alphaAnimating = true;
-
   if (floodMaterial) {
+    floodMaterial.uniforms.waterAlpha = 0.0;
     if (useGeoidTexture) {
       floodMaterial.uniforms.comparisonSLR = 0.0;
     } else {
       floodMaterial.uniforms.comparisonLevel = 0.0;
     }
   }
+
+  // Clear immediately to avoid residual overlays when returning to baseline.
+  waterAlpha = 0;
+  targetAlpha = 0;
+  alphaAnimating = false;
+  viewer.scene.globe.material = undefined;
+  viewer.scene.requestRender();
 }
 
 /**

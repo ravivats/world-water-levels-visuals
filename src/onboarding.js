@@ -54,7 +54,7 @@ const SLIDES = [
         </div>
         <div class="slide-feature">
           <span class="feature-icon">📍</span>
-          <span>Fly to vulnerable locations — Bangladesh, Maldives, Netherlands, and more</span>
+          <span>Go to vulnerable locations — Bangladesh, Maldives, Netherlands, and more</span>
         </div>
         <div class="slide-feature">
           <span class="feature-icon">🔄</span>
@@ -70,12 +70,12 @@ const SLIDES = [
     body: `
       <p>Use the controls on the left to pick a temperature increase and run the simulation. Results
       appear instantly — including statistics, contributor breakdowns, and a histogram of outcomes.</p>
-      <p>Fly to specific coastal cities on the right panel to see local impacts up close. Zoom, pan,
+      <p>Go to specific coastal cities on the right panel to see local impacts up close. Zoom, pan,
       and tilt the globe to explore freely.</p>
       <div class="slide-steps">
         <div class="slide-step"><span class="step-num">1</span> Pick a temperature increase</div>
         <div class="slide-step"><span class="step-num">2</span> View the flood overlay on the globe</div>
-        <div class="slide-step"><span class="step-num">3</span> Fly to vulnerable locations</div>
+        <div class="slide-step"><span class="step-num">3</span> Go to vulnerable locations</div>
         <div class="slide-step"><span class="step-num">4</span> Compare different scenarios</div>
       </div>
     `,

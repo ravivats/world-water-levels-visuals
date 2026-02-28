@@ -8,7 +8,7 @@ A 3D globe visualization of sea level rise using Monte Carlo simulation, built w
 - **Monte Carlo Simulation** — 5,000-iteration simulation modeling 5 contributors to sea level rise (thermal expansion, glaciers, Greenland, Antarctica, land water storage)
 - **Temperature Controls** — Preset buttons for +1°C, +2°C, +3°C, +5°C, +8°C, +10°C, plus fine-grained ±0.05°C increment buttons (range: 0–10°C)
 - **Flood Visualization** — Custom Globe.material GLSL shader that colors terrain fragments below the projected flood height, with per-fragment EGM96 geoid correction for regional accuracy
-- **Location Fly-to** — Quick navigation to vulnerable regions: Bangladesh, Sri Lanka, Maldives, Netherlands, NYC, Mumbai, Shanghai
+- **Location Go-to** — Quick navigation to vulnerable regions: Bangladesh, Sri Lanka, Maldives, Netherlands, NYC, Mumbai, Shanghai
 - **Comparison Mode** — Compare current simulation with previous snapshot; the shader highlights the delta in orange
 - **Statistics** — Median, mean, 5th/95th percentile SLR, contributor breakdown, and population-at-risk estimates
 - **Onboarding Walkthrough** — 4-slide introductory overlay explaining sea level rise, Monte Carlo simulation, and how to use the tool
