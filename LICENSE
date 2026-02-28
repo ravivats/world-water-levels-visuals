@@ -1,0 +1,27 @@
+LICENSE
+
+Copyright © 2026 Ravi Vats
+
+All rights reserved.
+
+This repository and all of its contents — including but not limited to code, text, data, designs, documentation, and media — are the intellectual property of the author and are provided for personal, non-commercial viewing only.
+
+No license is granted for the use, reproduction, modification, distribution, or creation of derivative works, in whole or in part, in any form or by any means.
+
+Prohibited Uses:
+- This content may not be used for training, fine-tuning, evaluating, or benchmarking any machine learning (ML) or artificial intelligence (AI) systems, including but not limited to large language models (LLMs) such as GPT, BERT, Claude, Gemini, Mistral, LLaMA, or similar technologies.
+- It may not be used as part of any dataset, corpus, or pretraining material for any AI, ML, NLP, or data analytics systems.
+- Any scraping, automated collection, or indexing of this content for AI/ML or data-mining purposes is strictly prohibited.
+
+No part of this content may be used in commercial or research contexts without the prior written consent of the copyright holder.
+
+No Implied License:
+The availability of this repository on any public platform (including but not limited to GitHub, GitLab, or Bitbucket) does not constitute a grant of any license or permission beyond what is explicitly stated herein. Platform-specific terms of service that permit forking or display do not extend any rights to use, copy, modify, or distribute the content for any other purpose.
+
+Severability:
+If any provision of this license is found to be unenforceable or invalid under applicable law, the remaining provisions shall continue in full force and effect.
+
+Violation of these terms may result in legal action.
+
+To request permission or inquire further, please contact: vats.ravi96@gmail.com
+
