@@ -7,11 +7,27 @@
  */
 
 // Box-Muller transform for normal distribution sampling
-function sampleNormal(mean, stdDev) {
-  const u1 = Math.random();
-  const u2 = Math.random();
+function sampleNormal(mean, stdDev, randomFn = Math.random) {
+  const u1 = Math.max(randomFn(), Number.EPSILON);
+  const u2 = randomFn();
   const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
   return mean + z * stdDev;
+}
+
+/**
+ * Deterministic pseudo-random generator (Mulberry32).
+ * @param {number} seed - 32-bit unsigned seed
+ * @returns {() => number} function that returns a float in [0, 1)
+ */
+function createSeededRandom(seed) {
+  let state = seed >>> 0;
+  return function next() {
+    state += 0x6D2B79F5;
+    let t = state;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }
 
 // Clamp to non-negative
@@ -62,7 +78,7 @@ const CONTRIBUTORS = {
  * @param {number} tempIncrease - Temperature increase in °C
  * @returns {object} - { total, breakdown }
  */
-function singleIteration(tempIncrease) {
+function singleIteration(tempIncrease, randomFn = Math.random) {
   const breakdown = {};
   let total = 0;
 
@@ -73,7 +89,7 @@ function singleIteration(tempIncrease) {
     // Standard deviation scales with sqrt of temperature for stability
     const std = contributor.stdPerDeg * Math.sqrt(tempIncrease);
 
-    const value = clampPositive(sampleNormal(mean, std));
+    const value = clampPositive(sampleNormal(mean, std, randomFn));
     breakdown[key] = value;
     total += value;
   }
@@ -85,9 +101,13 @@ function singleIteration(tempIncrease) {
  * Run the full Monte Carlo simulation.
  * @param {number} tempIncrease - Temperature increase in °C (1-5)
  * @param {number} iterations - Number of Monte Carlo iterations (default 1000)
+ * @param {object} options - Simulation options
+ * @param {number|null} options.seed - Optional 32-bit seed for deterministic runs
  * @returns {object} - Simulation results
  */
-export function runSimulation(tempIncrease, iterations = 1000) {
+export function runSimulation(tempIncrease, iterations = 1000, options = {}) {
+  const { seed = null } = options;
+
   if (tempIncrease <= 0) {
     return {
       tempIncrease: 0,
@@ -102,6 +122,7 @@ export function runSimulation(tempIncrease, iterations = 1000) {
         max: 0,
       },
       contributorStats: {},
+      seedUsed: null,
     };
   }
 
@@ -112,8 +133,13 @@ export function runSimulation(tempIncrease, iterations = 1000) {
     contributorTotals[key] = [];
   }
 
+  const randomFn =
+    Number.isInteger(seed) && seed >= 0
+      ? createSeededRandom(seed >>> 0)
+      : Math.random;
+
   for (let i = 0; i < iterations; i++) {
-    const { total, breakdown } = singleIteration(tempIncrease);
+    const { total, breakdown } = singleIteration(tempIncrease, randomFn);
     results.push(total);
 
     for (const [key, value] of Object.entries(breakdown)) {
@@ -138,6 +164,7 @@ export function runSimulation(tempIncrease, iterations = 1000) {
   return {
     tempIncrease,
     iterations,
+    seedUsed: Number.isInteger(seed) && seed >= 0 ? seed >>> 0 : null,
     results,
     stats,
     contributorStats,

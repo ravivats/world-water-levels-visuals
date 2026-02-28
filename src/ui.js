@@ -12,7 +12,6 @@ import {
   hideComparison,
   getComparisonDelta,
   hasPreviousSnapshot,
-  updateGeoidOffset,
 } from "./floodVisualization.js";
 
 Chart.register(...registerables);
@@ -20,18 +19,26 @@ Chart.register(...registerables);
 let histogramChart = null;
 let currentActiveTemp = 0;
 let currentLocationId = null;
-let currentGeoidOffset = 0;
+let currentSimulationResult = null;
+let currentFloodMetric = "median";
 
-const TEMP_LEVELS = [1, 2, 3];
+const TEMP_LEVELS = [1, 2, 3, 5, 8, 10];
 const TEMP_STEP = 0.05;
-const TEMP_MAX = 5;
+const TEMP_MAX = 10;
 const TEMP_MIN = 0;
+const MONTE_CARLO_ITERATIONS = 5000;
+const MONTE_CARLO_BASE_SEED = 1337;
+const FLOOD_METRICS = {
+  median: { key: "median", label: "Median (50th)" },
+  p95: { key: "p95", label: "High-end (95th)" },
+};
 
 /**
  * Initialize all UI components.
  */
 export function initUI(viewer) {
   createTempButtons(viewer);
+  createFloodMetricToggle(viewer);
   createLocationButtons(viewer);
   setupComparisonButton(viewer);
 }
@@ -48,10 +55,11 @@ function createTempButtons(viewer) {
   resetBtn.textContent = "Reset";
   resetBtn.addEventListener("click", () => {
     currentActiveTemp = 0;
+    currentSimulationResult = null;
     clearFlood(viewer);
     updateStatsPanel(null);
     updateHistogram(null);
-    updateInfoOverlay(0, 0);
+    updateInfoOverlay(0, 0, "median");
     updateCompareButton();
     setActiveButton(container, resetBtn);
     updateTempDisplay();
@@ -101,10 +109,11 @@ function createTempButtons(viewer) {
     const newTemp = Math.max(TEMP_MIN, parseFloat((currentActiveTemp - TEMP_STEP).toFixed(2)));
     if (newTemp <= 0) {
       currentActiveTemp = 0;
+      currentSimulationResult = null;
       clearFlood(viewer);
       updateStatsPanel(null);
       updateHistogram(null);
-      updateInfoOverlay(0, 0);
+      updateInfoOverlay(0, 0, "median");
       updateCompareButton();
       setActiveButton(container, resetBtn);
     } else {
@@ -135,20 +144,15 @@ function createTempButtons(viewer) {
 function runAndVisualize(viewer, tempIncrease) {
   currentActiveTemp = tempIncrease;
   const statusEl = document.getElementById("simulationStatus");
-  statusEl.innerHTML = `<div class="running">Running ${1000} Monte Carlo iterations...</div>`;
+  statusEl.innerHTML = `<div class="running">Running ${MONTE_CARLO_ITERATIONS} Monte Carlo iterations...</div>`;
 
   // Use requestAnimationFrame to let the UI update before running simulation
   requestAnimationFrame(() => {
-    const result = runSimulation(tempIncrease, 1000);
-
-    // Update flood visualization with median SLR + geoid correction
-    setFloodLevel(viewer, result.stats.median, result, currentGeoidOffset);
-
-    // Update UI
-    updateStatsPanel(result);
-    updateHistogram(result);
-    updateInfoOverlay(tempIncrease, result.stats.median);
-    updateCompareButton();
+    const result = runSimulation(tempIncrease, MONTE_CARLO_ITERATIONS, {
+      seed: buildSeedForTemp(tempIncrease),
+    });
+    currentSimulationResult = result;
+    applySimulationResult(viewer, result, true);
 
     statusEl.innerHTML = `<div class="done">✓ Simulation complete</div>`;
     setTimeout(() => {
@@ -373,7 +377,7 @@ function updateHistogram(result) {
 /**
  * Update the bottom info overlay.
  */
-function updateInfoOverlay(tempIncrease, medianSLR) {
+function updateInfoOverlay(tempIncrease, floodLevelMeters, floodMetric) {
   const tempEl = document.getElementById("currentTemp");
   const slrEl = document.getElementById("currentSLR");
 
@@ -382,8 +386,68 @@ function updateInfoOverlay(tempIncrease, medianSLR) {
     slrEl.textContent = "";
   } else {
     tempEl.textContent = `+${Number.isInteger(tempIncrease) ? tempIncrease : tempIncrease.toFixed(2)}°C`;
-    slrEl.textContent = `Sea Level: +${(medianSLR * 100).toFixed(1)} cm (median)`;
+    slrEl.textContent = `Sea Level: +${(floodLevelMeters * 100).toFixed(1)} cm (${floodMetric.toUpperCase()})`;
   }
+}
+
+/**
+ * Create flood metric toggle (median vs p95).
+ */
+function createFloodMetricToggle(viewer) {
+  const statusEl = document.getElementById("simulationStatus");
+  const wrapper = document.createElement("div");
+  wrapper.className = "flood-metric-toggle";
+  wrapper.innerHTML = `
+    <span class="flood-metric-label">Flood Display Level</span>
+    <div class="flood-metric-buttons">
+      <button class="flood-metric-btn active" data-metric="median">${FLOOD_METRICS.median.label}</button>
+      <button class="flood-metric-btn" data-metric="p95">${FLOOD_METRICS.p95.label}</button>
+    </div>
+  `;
+
+  wrapper.querySelectorAll(".flood-metric-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const metric = btn.dataset.metric;
+      if (!FLOOD_METRICS[metric] || metric === currentFloodMetric) return;
+
+      currentFloodMetric = metric;
+      wrapper.querySelectorAll(".flood-metric-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      if (currentSimulationResult && currentActiveTemp > 0) {
+        applySimulationResult(viewer, currentSimulationResult, false);
+      }
+    });
+  });
+
+  statusEl.parentNode.insertBefore(wrapper, statusEl);
+}
+
+/**
+ * Apply a simulation result to globe + UI with selected flood metric.
+ */
+function applySimulationResult(viewer, result, recordSnapshot) {
+  const floodLevelMeters = getFloodLevelFromResult(result);
+  setFloodLevel(viewer, floodLevelMeters, result, recordSnapshot);
+  updateStatsPanel(result);
+  updateHistogram(result);
+  updateInfoOverlay(result.tempIncrease, floodLevelMeters, currentFloodMetric);
+  updateCompareButton();
+}
+
+/**
+ * Return currently selected flood level statistic.
+ */
+function getFloodLevelFromResult(result) {
+  const metricConfig = FLOOD_METRICS[currentFloodMetric] || FLOOD_METRICS.median;
+  return result.stats[metricConfig.key];
+}
+
+/**
+ * Build deterministic seed from temperature so each scenario is reproducible.
+ */
+function buildSeedForTemp(tempIncrease) {
+  return (MONTE_CARLO_BASE_SEED + Math.round(tempIncrease * 1000)) >>> 0;
 }
 
 /**
@@ -400,7 +464,6 @@ function createLocationButtons(viewer) {
 
     btn.addEventListener("click", () => {
       currentLocationId = loc.id;
-      currentGeoidOffset = loc.geoidUndulation || 0;
 
       viewer.camera.flyTo({
         destination: Cartesian3.fromDegrees(
@@ -415,11 +478,9 @@ function createLocationButtons(viewer) {
         duration: 2,
       });
 
-      // Update flood visualization with new geoid offset for this location
-      if (currentActiveTemp > 0) {
-        const result = runSimulation(currentActiveTemp, 1000);
-        updateStatsPanel(result);
-        updateGeoidOffset(viewer, currentGeoidOffset);
+      // Update stats panel for location-specific info
+      if (currentActiveTemp > 0 && currentSimulationResult) {
+        updateStatsPanel(currentSimulationResult);
       }
 
       // Highlight active location

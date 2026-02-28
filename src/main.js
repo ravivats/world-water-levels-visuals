@@ -2,7 +2,8 @@
  * World Water Level Visualization
  * 3D Globe with Monte Carlo Sea Level Rise Simulation
  *
- * Entry point: initializes CesiumJS viewer, flood visualization, and UI.
+ * Entry point: initializes CesiumJS viewer, loads EGM96 geoid texture,
+ * sets up flood visualization with per-fragment geoid correction, and UI.
  */
 import {
   Ion,
@@ -15,6 +16,7 @@ import {
 import "cesium/Build/Cesium/Widgets/widgets.css";
 import "./style.css";
 
+import { loadGeoidTexture } from "./geoid.js";
 import { initFloodVisualization } from "./floodVisualization.js";
 import { initUI } from "./ui.js";
 import { showOnboarding } from "./onboarding.js";
@@ -77,17 +79,25 @@ viewer.camera.flyTo({
 });
 
 // ============================================================
-// Initialize Modules
+// Initialize Modules (async for geoid texture loading)
 // ============================================================
+async function init() {
+  // Load EGM96 geoid texture (2MB binary → canvas texture)
+  let geoidCanvas = null;
+  try {
+    geoidCanvas = await loadGeoidTexture();
+  } catch (err) {
+    console.error("Geoid texture loading failed, using fallback:", err);
+  }
 
-// Set up flood visualization (water plane, depth testing)
-initFloodVisualization(viewer);
+  // Set up flood visualization with per-fragment geoid correction
+  initFloodVisualization(viewer, geoidCanvas);
 
-// Set up UI (temperature controls, stats, histogram, locations)
-initUI(viewer);
+  // Set up UI (temperature controls, stats, histogram, locations)
+  initUI(viewer);
 
-// Show onboarding walkthrough, then log ready
-showOnboarding().then(() => {
+  // Show onboarding walkthrough, then log ready
+  await showOnboarding();
   console.log(
     "%c🌊 World Water Level Viz ready",
     "color: #3498db; font-size: 14px; font-weight: bold;"
@@ -96,4 +106,6 @@ showOnboarding().then(() => {
     "Select a temperature increase to run Monte Carlo simulation.\n" +
       "Zoom into coastal areas to see flooding effects."
   );
-});
+}
+
+init();

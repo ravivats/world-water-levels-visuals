@@ -141,6 +141,49 @@ html, body, #cesiumContainer {
   user-select: none;
 }
 
+/* ========== Flood Metric Toggle ========== */
+.flood-metric-toggle {
+  margin-top: 10px;
+}
+
+.flood-metric-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.flood-metric-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.flood-metric-btn {
+  flex: 1;
+  padding: 7px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #d0d0d0;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.flood-metric-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.flood-metric-btn.active {
+  background: rgba(52, 152, 219, 0.28);
+  border-color: rgba(52, 152, 219, 0.5);
+  color: #fff;
+}
+
 /* ========== Simulation Status ========== */
 #simulationStatus {
   min-height: 20px;

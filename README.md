@@ -1,13 +1,13 @@
-# 🌊 World Water Level Visualization
+# 🌊 World Water Levels Visualization
 
 A 3D globe visualization of sea level rise using Monte Carlo simulation, built with CesiumJS.
 
 ## Features
 
 - **3D Globe** — Interactive Earth with satellite imagery and high-resolution terrain
-- **Monte Carlo Simulation** — 1,000-iteration simulation modeling 5 contributors to sea level rise (thermal expansion, glaciers, Greenland, Antarctica, land water storage)
-- **Temperature Controls** — Preset buttons for +1°C, +2°C, +3°C, plus fine-grained ±0.05°C increment buttons (range: 0–5°C)
-- **Flood Visualization** — Custom Globe.material GLSL shader that colors terrain fragments below the projected flood height, with per-location geoid correction for regional accuracy
+- **Monte Carlo Simulation** — 5,000-iteration simulation modeling 5 contributors to sea level rise (thermal expansion, glaciers, Greenland, Antarctica, land water storage)
+- **Temperature Controls** — Preset buttons for +1°C, +2°C, +3°C, +5°C, +8°C, +10°C, plus fine-grained ±0.05°C increment buttons (range: 0–10°C)
+- **Flood Visualization** — Custom Globe.material GLSL shader that colors terrain fragments below the projected flood height, with per-fragment EGM96 geoid correction for regional accuracy
 - **Location Fly-to** — Quick navigation to vulnerable regions: Bangladesh, Sri Lanka, Maldives, Netherlands, NYC, Mumbai, Shanghai
 - **Comparison Mode** — Compare current simulation with previous snapshot; the shader highlights the delta in orange
 - **Statistics** — Median, mean, 5th/95th percentile SLR, contributor breakdown, and population-at-risk estimates
@@ -54,9 +54,39 @@ The simulation models sea level rise from 5 physical contributors, each with unc
 
 Antarctic contribution has the highest uncertainty due to Marine Ice Cliff Instability (MICI) risk.
 
+#### Monte Carlo Implementation Details (Exact)
+
+- **Iterations per simulation run:** `5000`
+- **Primary input variable:** Relative temperature increase in °C (`tempIncrease`, from UI controls in the `0.00` to `10.00` range)
+- **Contributors sampled each iteration (5 total):**
+  - Thermal Expansion
+  - Mountain Glaciers
+  - Greenland Ice Sheet
+  - Antarctic Ice Sheet
+  - Land Water Storage
+- **Per-contributor sampling formula per iteration:**
+  - `scaledTemp = tempIncrease ^ nonLinearExponent`
+  - `mean = meanPerDeg * scaledTemp`
+  - `std = stdPerDeg * sqrt(tempIncrease)`
+  - sampled value uses a Gaussian draw via Box-Muller transform
+  - sampled value is clamped to non-negative (`max(0, sampledValue)`)
+- **Total SLR per iteration:** Sum of all 5 sampled contributor values (meters)
+- **Output statistics computed from sorted iteration totals:**
+  - `mean`, `median (p50)`, `p5`, `p95`, `min`, `max`
+- **Seeded reproducibility:**
+  - PRNG: deterministic `Mulberry32` when a seed is provided
+  - Seed used by UI: `seed = 1337 + round(tempIncrease * 1000)`
+  - This makes each temperature scenario deterministic/repeatable across runs
+- **Optimization/shortcuts used to reduce runs:** None
+  - No early stopping
+  - No adaptive sampling
+  - No variance-reduction methods (e.g., Latin Hypercube, antithetic variates)
+  - Full fixed-size Monte Carlo (`5000` samples) every run
+- **Performance note:** Histogram and statistics reuse the same sampled run; switching flood display mode (Median vs P95) does not rerun Monte Carlo.
+
 ### Flood Visualization
 
-A custom GLSL shader is applied to the Cesium globe via `Globe.material`. The shader checks each terrain fragment's ellipsoidal height against the flood level and tints it blue if below. This avoids the depth-testing issues of translucent entity overlays.
+A custom GLSL shader is applied to the Cesium globe via `Globe.material`. The shader checks each terrain fragment's ellipsoidal height against the flood level and tints it amber if below. This avoids the depth-testing issues of translucent entity overlays.
 
 The flood level is computed as:
 
@@ -64,7 +94,7 @@ The flood level is computed as:
 ellipsoidal flood height = geoid undulation + sea level rise
 ```
 
-Each predefined location includes an approximate EGM96 geoid undulation value (the offset between the WGS84 ellipsoid and mean sea level), so flooding is regionally accurate rather than globally uniform.
+Flooding uses an EGM96 geoid texture sampled per-fragment (the offset between the WGS84 ellipsoid and mean sea level), so correction is global and continuous rather than tied to a single location offset.
 
 **Note:** This is a simplified model. Real sea level rise is not uniform globally and depends on ocean dynamics, gravitational effects of ice sheets, and local land subsidence.
 
@@ -83,3 +113,10 @@ Each predefined location includes an approximate EGM96 geoid undulation value (t
 - `src/locations.js` — Predefined coastal locations with geoid undulation data
 - `src/onboarding.js` — Introductory walkthrough overlay
 - `src/style.css` — All styles
+
+All rights reserved. No license is granted to use, copy, reproduce, distribute, or modify this code in any form.
+
+Use of this content for training, fine-tuning, evaluating, or otherwise incorporating into any artificial intelligence (AI) or machine learning (ML) systems, including but not limited to large language models (LLMs) such as GPT, BERT, or similar technologies, is strictly prohibited.
+
+📄 License: All rights reserved. See [LICENSE](./LICENSE) for details.
+
