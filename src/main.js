@@ -76,14 +76,24 @@ viewer.scene.globe.preloadSiblings = true;
 // like false elevation contours on some terrain tiles/view angles.
 viewer.scene.globe.enableLighting = false;
 
-// Set initial camera to show Earth from a nice angle
-viewer.camera.flyTo({
-  destination: Cartesian3.fromDegrees(78.0, 15.0, 8_000_000),
-  orientation: {
-    heading: CesiumMath.toRadians(0),
-    pitch: CesiumMath.toRadians(-90),
-  },
-  duration: 0,
+function flyToDefaultGlobeView(duration = 1.2) {
+  viewer.camera.flyTo({
+    destination: Cartesian3.fromDegrees(78.0, 15.0, 8_000_000),
+    orientation: {
+      heading: CesiumMath.toRadians(0),
+      pitch: CesiumMath.toRadians(-90),
+    },
+    duration,
+  });
+}
+
+// Set initial camera to show Earth from a nice angle.
+flyToDefaultGlobeView(0);
+
+// Make Home button return to the same default view used on startup.
+viewer.homeButton.viewModel.command.beforeExecute.addEventListener((evt) => {
+  evt.cancel = true;
+  flyToDefaultGlobeView(1.2);
 });
 
 // ============================================================

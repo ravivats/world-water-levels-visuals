@@ -2,6 +2,30 @@
 
 A 3D globe visualization of sea level rise using Monte Carlo simulation, built with CesiumJS.
 
+## Monte Carlo Algorithm (Technical Summary)
+
+**Inputs**
+- `tempIncrease` (°C), either manual or resolved from `(scenario, year)`
+- `iterations = 5000`
+- contributor parameters: `(meanPerDeg, stdPerDeg, exponent)` for 5 contributors
+- optional deterministic seed for reproducible sampling
+
+**Pseudo-code**
+1. For `i in 1..iterations`, set `total_i = 0`.
+2. For each contributor `c`, compute:
+   `scaledTemp = tempIncrease ^ exponent_c`,
+   `mu_c = meanPerDeg_c * scaledTemp`,
+   `sigma_c = stdPerDeg_c * sqrt(tempIncrease)`.
+3. Sample `x_c ~ Normal(mu_c, sigma_c)` (Box-Muller), clamp with `x_c = max(0, x_c)`, and accumulate `total_i += x_c`.
+4. Store all `total_i` values, then sort ascending.
+5. Compute outputs from the sorted totals: `mean`, `p50/median`, `p5`, `p95`, `min`, `max`; also compute per-contributor summary stats similarly.
+
+**Outputs**
+- Distribution of sea-level rise samples (meters) for the selected run
+- Summary statistics (`mean`, `median`, `p5`, `p95`, `min`, `max`)
+- Per-contributor contribution statistics and histogram-ready data
+  
+
 ## Features
 
 - **3D Globe** — Interactive Earth with satellite imagery and high-resolution terrain
