@@ -215,4 +215,11 @@ export const POPULATION_AT_RISK = {
   nyc: (slr) => Math.round(slr * 800_000),
   mumbai: (slr) => Math.round(slr * 3_000_000),
   shanghai: (slr) => Math.round(slr * 5_000_000),
+  baja_california: (slr) => Math.round(slr * 600_000),
+  miami: (slr) => Math.round(slr * 1_200_000),
+  lima: (slr) => Math.round(slr * 900_000),
+  recife: (slr) => Math.round(slr * 700_000),
+  trivandrum: (slr) => Math.round(slr * 500_000),
+  paradip: (slr) => Math.round(slr * 60_000),
+  jakarta: (slr) => Math.round(slr * 2_500_000),
 };

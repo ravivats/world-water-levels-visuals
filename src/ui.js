@@ -4,6 +4,7 @@
 import { Chart, registerables } from "chart.js";
 import { Cartesian3, Math as CesiumMath } from "cesium";
 import { runSimulation, getImpactDescription, POPULATION_AT_RISK } from "./simulation.js";
+import { PROJECTION_YEARS, getScenarioPresets, getScenarioById, getProjectedTemp } from "./projections.js";
 import { LOCATIONS, getLocationById } from "./locations.js";
 import {
   setFloodLevel,
@@ -21,6 +22,9 @@ let currentActiveTemp = 0;
 let currentLocationId = null;
 let currentSimulationResult = null;
 let currentFloodMetric = "p95";
+let currentProjection = null;
+let tempButtonsContainer = null;
+let resetTempButton = null;
 
 const TEMP_LEVELS = [1, 2, 3, 5, 8, 10];
 const TEMP_STEP = 0.05;
@@ -38,6 +42,7 @@ const FLOOD_METRICS = {
  */
 export function initUI(viewer) {
   createTempButtons(viewer);
+  createProjectionControls(viewer);
   createFloodMetricToggle(viewer);
   createLocationButtons(viewer);
   setupComparisonButton(viewer);
@@ -48,14 +53,17 @@ export function initUI(viewer) {
  */
 function createTempButtons(viewer) {
   const container = document.getElementById("tempButtons");
+  tempButtonsContainer = container;
 
   // Reset button
   const resetBtn = document.createElement("button");
+  resetTempButton = resetBtn;
   resetBtn.className = "temp-btn reset-btn active";
   resetBtn.textContent = "Reset";
   resetBtn.addEventListener("click", () => {
     currentActiveTemp = 0;
     currentSimulationResult = null;
+    currentProjection = null;
     clearFlood(viewer);
     updateStatsPanel(null);
     updateHistogram(null);
@@ -78,7 +86,7 @@ function createTempButtons(viewer) {
     btn.style.setProperty("--btn-hue", hue);
 
     btn.addEventListener("click", () => {
-      runAndVisualize(viewer, temp);
+      runAndVisualize(viewer, temp, { projection: null });
       setActiveButton(container, btn);
       updateTempDisplay();
     });
@@ -110,6 +118,7 @@ function createTempButtons(viewer) {
     if (newTemp <= 0) {
       currentActiveTemp = 0;
       currentSimulationResult = null;
+      currentProjection = null;
       clearFlood(viewer);
       updateStatsPanel(null);
       updateHistogram(null);
@@ -117,7 +126,7 @@ function createTempButtons(viewer) {
       updateCompareButton();
       setActiveButton(container, resetBtn);
     } else {
-      runAndVisualize(viewer, newTemp);
+      runAndVisualize(viewer, newTemp, { projection: null });
       clearPresetActive(container);
     }
     updateTempDisplay();
@@ -126,7 +135,7 @@ function createTempButtons(viewer) {
   plusBtn.addEventListener("click", () => {
     const newTemp = Math.min(TEMP_MAX, parseFloat((currentActiveTemp + TEMP_STEP).toFixed(2)));
     if (newTemp > 0) {
-      runAndVisualize(viewer, newTemp);
+      runAndVisualize(viewer, newTemp, { projection: null });
       clearPresetActive(container);
     }
     updateTempDisplay();
@@ -141,15 +150,18 @@ function createTempButtons(viewer) {
 /**
  * Run simulation and update visualization.
  */
-function runAndVisualize(viewer, tempIncrease) {
+function runAndVisualize(viewer, tempIncrease, options = {}) {
+  const { projection = null } = options;
   currentActiveTemp = tempIncrease;
+  currentProjection = projection;
+  updateTempDisplay();
   const statusEl = document.getElementById("simulationStatus");
   statusEl.innerHTML = `<div class="running">Running ${MONTE_CARLO_ITERATIONS} Monte Carlo iterations...</div>`;
 
   // Use requestAnimationFrame to let the UI update before running simulation
   requestAnimationFrame(() => {
     const result = runSimulation(tempIncrease, MONTE_CARLO_ITERATIONS, {
-      seed: buildSeedForTemp(tempIncrease),
+      seed: buildSeedForRun(tempIncrease, projection),
     });
     currentSimulationResult = result;
     applySimulationResult(viewer, result, true);
@@ -385,9 +397,100 @@ function updateInfoOverlay(tempIncrease, floodLevelMeters, floodMetric) {
     tempEl.textContent = "Baseline (Current)";
     slrEl.textContent = "";
   } else {
-    tempEl.textContent = `+${Number.isInteger(tempIncrease) ? tempIncrease : tempIncrease.toFixed(2)}°C`;
+    if (currentProjection) {
+      const scenario = getScenarioById(currentProjection.scenarioId);
+      const scenarioLabel = scenario ? scenario.label : currentProjection.scenarioId;
+      tempEl.textContent = `+${tempIncrease.toFixed(2)}°C (${scenarioLabel}, ${currentProjection.year})`;
+    } else {
+      tempEl.textContent = `+${Number.isInteger(tempIncrease) ? tempIncrease : tempIncrease.toFixed(2)}°C`;
+    }
     slrEl.textContent = `Sea Level: +${(floodLevelMeters * 100).toFixed(1)} cm (${floodMetric.toUpperCase()})`;
   }
+}
+
+/**
+ * Create scenario presets and time slider controls.
+ */
+function createProjectionControls(viewer) {
+  const tempButtonsEl = document.getElementById("tempButtons");
+  const simulationStatusEl = document.getElementById("simulationStatus");
+  const scenarios = getScenarioPresets();
+  const defaultScenario = scenarios[1] || scenarios[0];
+  const defaultYear = 2050;
+
+  const wrapper = document.createElement("div");
+  wrapper.className = "projection-panel";
+  wrapper.innerHTML = `
+    <h3>⏳ Time Projections</h3>
+    <div class="projection-scenarios"></div>
+    <div class="projection-slider-wrap">
+      <label class="projection-year-label" for="projectionYearSlider">Year: <span id="projectionYearValue"></span></label>
+      <input id="projectionYearSlider" class="projection-year-slider" type="range" min="0" max="${PROJECTION_YEARS.length - 1}" step="1" value="${PROJECTION_YEARS.indexOf(defaultYear)}" />
+      <div class="projection-year-marks"></div>
+    </div>
+    <div id="projectionTempSummary" class="projection-temp-summary"></div>
+  `;
+
+  const scenariosEl = wrapper.querySelector(".projection-scenarios");
+  const yearMarksEl = wrapper.querySelector(".projection-year-marks");
+  const yearValueEl = wrapper.querySelector("#projectionYearValue");
+  const yearSliderEl = wrapper.querySelector("#projectionYearSlider");
+  const tempSummaryEl = wrapper.querySelector("#projectionTempSummary");
+
+  for (const scenario of scenarios) {
+    const btn = document.createElement("button");
+    btn.className = "projection-scenario-btn";
+    btn.dataset.scenarioId = scenario.id;
+    btn.textContent = scenario.label;
+    btn.title = scenario.description;
+    if (scenario.id === defaultScenario.id) btn.classList.add("active");
+    btn.addEventListener("click", () => {
+      setScenarioActive(scenariosEl, scenario.id);
+      applyProjectionSelection();
+    });
+    scenariosEl.appendChild(btn);
+  }
+
+  for (const year of PROJECTION_YEARS) {
+    const mark = document.createElement("span");
+    mark.className = "projection-year-mark";
+    mark.textContent = String(year);
+    yearMarksEl.appendChild(mark);
+  }
+
+  yearSliderEl.addEventListener("input", () => {
+    applyProjectionSelection();
+  });
+
+  function setScenarioActive(container, scenarioId) {
+    container.querySelectorAll(".projection-scenario-btn").forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.scenarioId === scenarioId);
+    });
+  }
+
+  function applyProjectionSelection() {
+    const activeScenarioBtn = scenariosEl.querySelector(".projection-scenario-btn.active");
+    const scenarioId = activeScenarioBtn ? activeScenarioBtn.dataset.scenarioId : defaultScenario.id;
+    const year = PROJECTION_YEARS[Number(yearSliderEl.value)];
+    const projectedTemp = getProjectedTemp(scenarioId, year);
+    renderProjectionSummary(year, projectedTemp);
+
+    if (tempButtonsContainer && resetTempButton) {
+      clearPresetActive(tempButtonsContainer);
+      resetTempButton.classList.remove("active");
+    }
+
+    runAndVisualize(viewer, projectedTemp, { projection: { scenarioId, year } });
+  }
+
+  function renderProjectionSummary(year, projectedTemp) {
+    yearValueEl.textContent = String(year);
+    tempSummaryEl.textContent = `Projected warming: +${projectedTemp.toFixed(2)}°C`;
+  }
+
+  // Insert below temperature controls and above simulation status.
+  tempButtonsEl.parentNode.insertBefore(wrapper, simulationStatusEl);
+  renderProjectionSummary(defaultYear, getProjectedTemp(defaultScenario.id, defaultYear));
 }
 
 /**
@@ -446,8 +549,20 @@ function getFloodLevelFromResult(result) {
 /**
  * Build deterministic seed from temperature so each scenario is reproducible.
  */
-function buildSeedForTemp(tempIncrease) {
+function buildSeedForRun(tempIncrease, projection) {
+  if (projection) {
+    const scenarioHash = hashString(projection.scenarioId);
+    return (MONTE_CARLO_BASE_SEED + projection.year * 17 + scenarioHash) >>> 0;
+  }
   return (MONTE_CARLO_BASE_SEED + Math.round(tempIncrease * 1000)) >>> 0;
+}
+
+function hashString(text) {
+  let hash = 0;
+  for (let i = 0; i < text.length; i++) {
+    hash = (hash * 31 + text.charCodeAt(i)) >>> 0;
+  }
+  return hash;
 }
 
 /**

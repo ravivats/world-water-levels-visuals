@@ -24,9 +24,9 @@ let alphaAnimating = false;
 /**
  * GLSL shader with per-fragment geoid lookup.
  *
- * Computes lon/lat from the fragment's world-space position, samples the
- * EGM96 geoid texture, decodes the 2-channel 16-bit value to get local
- * geoid undulation, and compares terrain height against the flood surface.
+ * Samples the EGM96 geoid texture using material texture coordinates (`st`)
+ * so lookup stays consistent across Cesium scene modes (3D/2D/Columbus),
+ * then decodes to local geoid undulation and compares against flood surface.
  */
 const FLOOD_SHADER_GEOID = `
   czm_material czm_getMaterial(czm_materialInput materialInput) {
@@ -40,20 +40,10 @@ const FLOOD_SHADER_GEOID = `
 
     float h = materialInput.height;
 
-    // Fragment position in world coordinates (ECEF)
-    // positionToEyeEC points FROM fragment TO eye, so negate to get fragment position in eye coords
-    vec3 posWC = (czm_inverseView * vec4(-materialInput.positionToEyeEC, 1.0)).xyz;
-
-    // ECEF to geodetic lon/lat
-    float lon = atan(posWC.y, posWC.x);                    // radians, -pi..+pi
-    float lat = atan(posWC.z, length(posWC.xy));            // radians, -pi/2..+pi/2
-
-    // Convert to UV for texture sampling
-    // U: -180°..+180° maps to 0..1
-    // V: Cesium's flipY=true means v=0 is canvas bottom (90°S), v=1 is canvas top (90°N)
-    //    So: lat=+90° → v=1, lat=-90° → v=0
-    float u = lon / (2.0 * czm_pi) + 0.5;
-    float v = lat / czm_pi + 0.5;
+    // Use globe texture coordinates for robust behavior across scene modes.
+    // st.x: longitude mapped to 0..1, st.y: latitude mapped to 0..1 (south->north).
+    float u = materialInput.st.x;
+    float v = materialInput.st.y;
 
     // Sample geoid texture and decode 2-channel 16-bit value
     vec4 geoidSample = texture(geoidTexture, vec2(u, v));

@@ -65,8 +65,16 @@ const viewer = new Viewer("cesiumContainer", {
   shadows: false,
 });
 
-// Enable lighting for a more realistic look
-viewer.scene.globe.enableLighting = true;
+// Terrain quality tuning:
+// - lower screen-space error reduces visible tile/LOD contour artifacts
+// - preload sibling/ancestor tiles helps reduce abrupt LOD boundaries
+viewer.scene.globe.maximumScreenSpaceError = 0.8;
+viewer.scene.globe.preloadAncestors = true;
+viewer.scene.globe.preloadSiblings = true;
+
+// Disable globe lighting by default to avoid lighting banding that can look
+// like false elevation contours on some terrain tiles/view angles.
+viewer.scene.globe.enableLighting = false;
 
 // Set initial camera to show Earth from a nice angle
 viewer.camera.flyTo({

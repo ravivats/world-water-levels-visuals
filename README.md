@@ -7,8 +7,10 @@ A 3D globe visualization of sea level rise using Monte Carlo simulation, built w
 - **3D Globe** — Interactive Earth with satellite imagery and high-resolution terrain
 - **Monte Carlo Simulation** — 5,000-iteration simulation modeling 5 contributors to sea level rise (thermal expansion, glaciers, Greenland, Antarctica, land water storage)
 - **Temperature Controls** — Preset buttons for +1°C, +2°C, +3°C, +5°C, +8°C, +10°C, plus fine-grained ±0.05°C increment buttons (range: 0–10°C)
+- **Time Projections** — Scenario presets (`SSP1-2.6`, `SSP2-4.5`, `SSP5-8.5`) with year slider (`2030`, `2050`, `2100`) to map time pathways to warming
 - **Flood Visualization** — Custom Globe.material GLSL shader that colors terrain fragments below the projected flood height, with per-fragment EGM96 geoid correction for regional accuracy
-- **Location Go-to** — Quick navigation to vulnerable regions: Bangladesh, Sri Lanka, Maldives, Netherlands, NYC, Mumbai, Shanghai
+- **Flood Display Modes** — Toggle flood rendering between Median (P50) and High-end (P95), with P95 selected by default
+- **Location Go-to** — Expanded global quick navigation across North America, South America, South Asia, Southeast Asia, Europe, and China
 - **Comparison Mode** — Compare current simulation with previous snapshot; the shader highlights the delta in orange
 - **Statistics** — Median, mean, 5th/95th percentile SLR, contributor breakdown, and population-at-risk estimates
 - **Onboarding Walkthrough** — 4-slide introductory overlay explaining sea level rise, Monte Carlo simulation, and how to use the tool
@@ -58,6 +60,10 @@ Antarctic contribution has the highest uncertainty due to Marine Ice Cliff Insta
 
 - **Iterations per simulation run:** `5000`
 - **Primary input variable:** Relative temperature increase in °C (`tempIncrease`, from UI controls in the `0.00` to `10.00` range)
+- **Projection mode inputs (optional):**
+  - Scenario preset: `SSP1-2.6`, `SSP2-4.5`, or `SSP5-8.5`
+  - Year: `2030`, `2050`, or `2100`
+  - Projected temperature is resolved from scenario/year before simulation
 - **Contributors sampled each iteration (5 total):**
   - Thermal Expansion
   - Mountain Glaciers
@@ -75,8 +81,10 @@ Antarctic contribution has the highest uncertainty due to Marine Ice Cliff Insta
   - `mean`, `median (p50)`, `p5`, `p95`, `min`, `max`
 - **Seeded reproducibility:**
   - PRNG: deterministic `Mulberry32` when a seed is provided
-  - Seed used by UI: `seed = 1337 + round(tempIncrease * 1000)`
-  - This makes each temperature scenario deterministic/repeatable across runs
+  - Seed used by UI:
+    - Manual temperature mode: `seed = 1337 + round(tempIncrease * 1000)`
+    - Projection mode: seed is derived from scenario id hash + year + base seed
+  - This makes both manual and scenario/year runs deterministic/repeatable
 - **Optimization/shortcuts used to reduce runs:** None
   - No early stopping
   - No adaptive sampling
@@ -96,6 +104,8 @@ ellipsoidal flood height = geoid undulation + sea level rise
 
 Flooding uses an EGM96 geoid texture sampled per-fragment (the offset between the WGS84 ellipsoid and mean sea level), so correction is global and continuous rather than tied to a single location offset.
 
+The geoid lookup uses globe texture coordinates so flood behavior remains consistent across Cesium scene modes (3D and 2D).
+
 **Note:** This is a simplified model. Real sea level rise is not uniform globally and depends on ocean dynamics, gravitational effects of ice sheets, and local land subsidence.
 
 ## Tech Stack
@@ -107,9 +117,11 @@ Flooding uses an EGM96 geoid texture sampled per-fragment (the offset between th
 ## Project Structure
 
 - `src/main.js` — Entry point, Cesium viewer setup, token handling
-- `src/ui.js` — Temperature controls, stats panel, histogram, location navigation
+- `src/ui.js` — Temperature controls, projection controls, stats panel, histogram, location navigation
 - `src/simulation.js` — Monte Carlo sea level rise simulation engine
+- `src/projections.js` — Scenario/year projection presets and temperature resolution logic
 - `src/floodVisualization.js` — Globe.material shader for terrain-based flood coloring
+- `src/geoid.js` — EGM96 geoid loader and texture encoding for shader sampling
 - `src/locations.js` — Predefined coastal locations with geoid undulation data
 - `src/onboarding.js` — Introductory walkthrough overlay
 - `src/style.css` — All styles
@@ -119,4 +131,3 @@ All rights reserved. No license is granted to use, copy, reproduce, distribute, 
 Use of this content for training, fine-tuning, evaluating, or otherwise incorporating into any artificial intelligence (AI) or machine learning (ML) systems, including but not limited to large language models (LLMs) such as GPT, BERT, or similar technologies, is strictly prohibited.
 
 📄 License: All rights reserved. See [LICENSE](./LICENSE) for details.
-

@@ -21,21 +21,18 @@ const SLIDES = [
   {
     title: "Monte Carlo Simulation",
     body: `
-      <p>Rather than producing a single estimate, this tool runs <strong>1,000 Monte Carlo iterations</strong>
-      for each temperature scenario. Each iteration randomly samples from scientific uncertainty ranges
-      for five contributors to sea level rise:</p>
+      <p>This tool runs <strong>5,000 Monte Carlo iterations</strong> per temperature scenario.
+      Each run samples uncertainty ranges for five sea-level contributors:</p>
       <ul>
         <li><strong>Thermal expansion</strong> — oceans absorb heat and expand</li>
-        <li><strong>Mountain glaciers</strong> — ice loss from glaciers worldwide</li>
-        <li><strong>Greenland ice sheet</strong> — accelerating melt, non-linear at higher temps</li>
-        <li><strong>Antarctic ice sheet</strong> — highest uncertainty, potential for rapid collapse</li>
-        <li><strong>Land water storage</strong> — groundwater extraction, reservoir changes</li>
+        <li><strong>Mountain glaciers</strong> — glacier ice loss</li>
+        <li><strong>Greenland ice sheet</strong> — accelerating, non-linear melt</li>
+        <li><strong>Antarctic ice sheet</strong> — highest uncertainty</li>
+        <li><strong>Land water storage</strong> — groundwater and reservoirs</li>
       </ul>
-      <p>The result is a <strong>probability distribution</strong> — not one number, but a range showing
-      how likely different outcomes are:</p>
+      <p>The result is a <strong>probability distribution</strong> of likely outcomes:</p>
       <canvas id="onboardingChart" width="360" height="120"></canvas>
-      <p class="slide-caption">Example distribution for +2°C warming. The median, 5th and 95th percentiles
-      give a confidence range.</p>
+      <p class="slide-caption">Example at +2°C. Median, 5th, and 95th percentiles show the confidence range.</p>
     `,
     icon: "🎲",
     onShow: drawMiniDistribution,
@@ -50,7 +47,7 @@ const SLIDES = [
       <div class="slide-features">
         <div class="slide-feature">
           <span class="feature-icon">🌡️</span>
-          <span>Choose a warming scenario (+1°C to +5°C) or fine-tune with ±0.05°C steps</span>
+          <span>Choose a warming scenario (+1°C to +10°C) or fine-tune with ±0.05°C steps</span>
         </div>
         <div class="slide-feature">
           <span class="feature-icon">📍</span>
