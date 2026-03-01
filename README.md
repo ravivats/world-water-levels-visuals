@@ -2,6 +2,30 @@
 
 A 3D globe visualization of sea level rise using Monte Carlo simulation, built with CesiumJS.
 
+## Live Deployment
+
+- Live app: [https://world-water-levels-visuals-jspy7423g-vatsravi96-9483s-projects.vercel.app/](https://world-water-levels-visuals-jspy7423g-vatsravi96-9483s-projects.vercel.app/)
+
+## Project Overview
+
+This project is an interactive world map that helps people see what sea-level rise could look like before it happens.
+
+You can choose warming levels directly, or pick future climate scenarios and years (like 2030, 2050, 2100). The app then runs thousands of Monte Carlo simulations to estimate possible sea-level outcomes, including median and high-end risk.
+
+Those results are shown on a real 3D/2D globe using terrain and geoid-corrected flood shading, so users can visually explore which coastal areas are likely to be affected.
+
+It supports:
+
+- Global flood-risk visualization on a Cesium globe (3D and 2D)
+- Scenario + timeline projections (SSP pathways)
+- Uncertainty-aware outputs (p5, median, p95)
+- City/region go-to views for vulnerable coastlines
+- Comparison between runs to see how risk changes with each degree of warming
+
+## Why It Matters
+
+Climate numbers alone are hard to feel. Visualization makes risk concrete. If we can see potential impacts now, we can plan adaptation, protect infrastructure, guide policy, and reduce future damage before it becomes irreversible.
+
 ## Monte Carlo Algorithm (Technical Summary)
 
 **Inputs**
